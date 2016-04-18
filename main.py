@@ -20,9 +20,9 @@ BUFF = 1024
 ConnectionLimit = 10            # Max number of connections
 Debbuging = 1                   # Debug Messages
 
-#php connection details
-#username='orcserver'
-#dbpass='Qrw8XW9JNDHc4P7n'
+# php connection details
+# username='orcserver'
+# dbpass='Qrw8XW9JNDHc4P7n'
 
 
 
@@ -30,6 +30,7 @@ def response(key):
     return'ServerResponse: ' + key
 
 class clientId(object):
+
 
     def __init__(self, userid, address):
         self.UserID = userid
@@ -114,4 +115,5 @@ if __name__ == '__main__':
         debug("Waiting for connection ... Listening on port " + str(PORT))
         clientsock, addr = Serversock.accept()
         print(' ... Connected from: ' + str(addr))
-        thread.start_new_thread(handler, (clientsock, addr))
+        threading.start_new_thread(handler, (clientsock, addr))
+
