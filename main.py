@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/python
 
 # Notes:
 #    layout  - <pretext>:<data>?<2arg>
@@ -10,8 +10,13 @@
 # !/usr/bin/env python
 
 from socket import *
+
+import database     # bring in the database module
 import threading
 import time
+import MySQLdb      #MySQL connector
+
+database.Firstsetup()
 
 PROGNAME = "ORC - Open Raspberry (Pi) Chess"
 HOST = "127.0.0.1"
@@ -43,12 +48,12 @@ def handler(clientsocket, address):
     global BUFF
     print('address: '), address
 
-    # First connection, requestUID & PWHash
-    clientsocket.send("UID")
+    # First connection, request UID & PWHash
+    clientsocket.send(str.encode("UID"))
 
     while True:
         data = clientsocket.recv(BUFF)
-
+        data = data.decode('utf-8')
         debug(data)
 
         # data validation
@@ -95,8 +100,7 @@ def handler(clientsocket, address):
 
 
 def authuser(userid, hash):
-    # todo auth against Server - right now I'll assume everything is kosher chicken
-    # 3rd try lock out.
+    database.authUser(userid,hash)
     return True
 
 def debug(message):
@@ -113,7 +117,11 @@ if __name__ == '__main__':
 
     while True:
         debug("Waiting for connection ... Listening on port " + str(PORT))
-        clientsock, addr = Serversock.accept()
+        (clientsock, addr) = Serversock.accept()
         print(' ... Connected from: ' + str(addr))
-        threading.start_new_thread(handler, (clientsock, addr))
+        t = threading.Thread(target = handler(clientsock,addr))
+        t.daemon = True
+        t.start()
+
+        # threading._start_new_thread(addr, clientsock)
 
