@@ -1,0 +1,5 @@
+Things that I'm need to do
+input checking
+Setting files read at start up
+Data logging to a file
+client side

@@ -1,0 +1,10 @@
+Code that I have found that I will use later
+
+The Hash procedure
+import hashlib
+m = hashlib.md5()
+m.update("1")
+print m.hexdigest()
+
+
+c4ca4238a0b923820dcc509a6f75849b

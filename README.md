@@ -12,4 +12,4 @@ Program parts
 
 Database:
   mysql
-  mysql MySQLdb
+  mysql sqlite3

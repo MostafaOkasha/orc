@@ -12,30 +12,23 @@
 from socket import *
 
 import database     # bring in the database module
-import threading
 import time
-import MySQLdb      #MySQL connector
+import threading
 
-database.Firstsetup()
 
-PROGNAME = "ORC - Open Raspberry (Pi) Chess"
-HOST = "127.0.0.1"
+PROGNAME = "ORC - Open Raspberry-Pi Chess"
+HOST = "192.168.1.15"
 PORT = 4004
 BUFF = 1024
 ConnectionLimit = 10            # Max number of connections
 Debbuging = 1                   # Debug Messages
 
-# php connection details
-# username='orcserver'
-# dbpass='Qrw8XW9JNDHc4P7n'
-
-
 
 def response(key):
     return'ServerResponse: ' + key
 
-class clientId(object):
 
+class clientId(object):
 
     def __init__(self, userid, address):
         self.UserID = userid
@@ -74,24 +67,25 @@ def handler(clientsocket, address):
             break
 
         # Search for pretext and split apart UserID and Hash
+        #  TODO need to make this much more robust
         pretext = data.split(":")[0]
         pretext = pretext.lower()
 
         data = data.split(":")[1]
 
         if pretext == "uid":
-            hash = ""
+            userhash = ""
             userid = data.split("?")[0]
-            hash = data.split("?")[1]
+            userhash = data.split("?")[1]
 
-        if authuser(userid, hash) == False:
+        if authuser(userid, userhash) == False:
             debug("auth failed for " + userid)
             userid = ""
             hash = ""
             clientsocket.send("UID")
 
         # clear the hash var as we don't need to keep it saved
-        hash = ""
+        userhash = ""
 
         debug("authed User " + userid)
 
@@ -99,16 +93,18 @@ def handler(clientsocket, address):
         clientDetails = clientId(userid, address)
 
 
-def authuser(userid, hash):
-    database.authUser(userid,hash)
-    return True
+def authuser(userid, user):
+    print(database.authuser(userid, user))
+    print("done")
+
+
 
 def debug(message):
     global Debbuging
     if Debbuging == 1:
         print(message)
 
-if __name__ == '__main__':
+def Main():
     ADDR = (HOST, PORT)
     Serversock = socket(AF_INET, SOCK_STREAM)
     Serversock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
@@ -125,3 +121,5 @@ if __name__ == '__main__':
 
         # threading._start_new_thread(addr, clientsock)
 
+if __name__ == '__main__':
+    Main()
