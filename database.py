@@ -65,11 +65,12 @@ import datetime
     .schema [tablename] -   Will show the CREATE statement(s) for a table or tables
 '''
 
+
 def authuser(uname, pw):
     print("authing user")
 
     toreturn = False
-    sql = 'SELECT * from users where name = "'+uname+'"  AND pw_hash = '+pw+';'
+    sql = 'SELECT * from users where name = "'+uname+'" AND pw_hash = "'+pw+'";'
 
     data = (runquery(sql))
 
@@ -77,7 +78,7 @@ def authuser(uname, pw):
         if data[9] != 1:  # account not locked?
 
             sql = "UPDATE users SET last_connected = " + '"' + datetime.datetime.now().strftime("%Y-%m-%d") + '"' + ' WHERE name = "' + uname + '";'
-            updateDatabase(sql)
+            updatedatabase(sql)
             toreturn = True
         else:
             toreturn = "Account locked"
@@ -87,23 +88,23 @@ def authuser(uname, pw):
         sql = 'SELECT * from users where name = "' + uname + '";'
         data = (runquery(sql))
 
-        if len(data) != 0: # Found username
+        if len(data) != 0:  # Found username
             print("found username")
 
-            BadPwCount = int(data[3]) + 1
-            if BadPwCount <= 5:
-                sql = "UPDATE users SET bad_pw_count = " + str(BadPwCount) + ' WHERE name = "' + str(uname) + ";"
+            badpwcount = int(data[3]) + 1
+            if badpwcount <= 5:
+                sql = "UPDATE users SET bad_pw_count = " + str(badpwcount) + ' WHERE name = "' + str(uname) + ";"
                 toreturn = "Incorrect username password combination"
             else:
                 sql = "UPDATE users SET account_locked = 1, locked_date = " + '"' + datetime.datetime.now().strftime("%Y-%m-%d") + '"' + ' WHERE name = "' + str(uname) +'";'
                 toreturn = "Account locked"
 
-            updateDatabase(sql)
+            updatedatabase(sql)
 
     return toreturn
 
 
-def updateDatabase(sqlstatement):
+def updatedatabase(sqlstatement):
 
     try:
         con = sqlite3.connect('orc.db')
@@ -128,8 +129,7 @@ def runquery(sqlstatement):
     if len(data) != 0:
         data = data[0]  # convert to a Tuple
     else:
-        data =""
+        data = ""
     con.close()
+
     return data
-
-

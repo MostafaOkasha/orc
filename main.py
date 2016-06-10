@@ -17,7 +17,7 @@ import threading
 
 
 PROGNAME = "ORC - Open Raspberry-Pi Chess"
-HOST = "192.168.1.15"
+HOST = "192.168.20.105"
 PORT = 4004
 BUFF = 1024
 ConnectionLimit = 10            # Max number of connections
@@ -58,10 +58,7 @@ def handler(clientsocket, address):
         if data == "close":
             clientsocket.close()
 
-            # todo update server DB they have disconnected
-
-            print(clientDetails.UserID)
-            print(clientDetails.Addr)
+            # todo update server DB  when they have disconnected
 
             print("client closed the connection")
             break
@@ -78,25 +75,22 @@ def handler(clientsocket, address):
             userid = data.split("?")[0]
             userhash = data.split("?")[1]
 
-        if authuser(userid, userhash) == False:
-            debug("auth failed for " + userid)
-            userid = ""
-            hash = ""
-            clientsocket.send("UID")
+            result = database.authuser(userid, userhash)
+
+            if result != True:
+                print("auth failed for " + userid + " - "  + result)
+                userid = ""
+                hash = ""
+                data = "UID" + ":" + result
+
+                clientsocket.send(data.encode())
+            else:
+                debug("authed User " + userid)
+                clientDetails = clientId(userid, address)
 
         # clear the hash var as we don't need to keep it saved
         userhash = ""
-
-        debug("authed User " + userid)
-
-        # Client Obect Class
-        clientDetails = clientId(userid, address)
-
-
-def authuser(userid, user):
-    print(database.authuser(userid, user))
-    print("done")
-
+        userid = ""
 
 
 def debug(message):
@@ -104,7 +98,11 @@ def debug(message):
     if Debbuging == 1:
         print(message)
 
-def Main():
+
+def main():
+    ReadSettings()
+
+
     ADDR = (HOST, PORT)
     Serversock = socket(AF_INET, SOCK_STREAM)
     Serversock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
@@ -119,7 +117,59 @@ def Main():
         t.daemon = True
         t.start()
 
-        # threading._start_new_thread(addr, clientsock)
+def nonblank_lines(f):
+    for l in f:
+        line = l.rstrip()
+        if line:
+            yield line
+
+def ReadSettings():
+    print("Reading settings")
+    try:
+        settings = open("settings/settings.inf", "r")
+
+        for LineData in nonblank_lines(settings):
+
+            if LineData[:1] != "[":
+                setting = LineData.split("=")[0]
+                settingArgument = LineData.split("=")[1]
+                setting = setting.lower()
+
+                if setting == "name":
+                    global PROGNAME
+                    PROGNAME = settingArgument
+                    continue
+
+                if setting == "port":
+                    if settingArgument.isnumeric() == True:
+                        global PORT
+                        PORT = int(settingArgument)
+                        continue
+
+                if setting == "maxconnections":
+                    if settingArgument.isnumeric() == True:
+                        global ConnectionLimit
+                        ConnectionLimit = int(settingArgument)
+                        continue
+
+                if setting == "debuglevel":
+                    if settingArgument.isnumeric() == True:
+                        global Debbuging
+                        Debbuging = int(settingArgument)
+                        continue
+
+
+
+
+
+
+    except:
+        print("whoopsie")
+
+
+    finally:
+        settings.close()
+
 
 if __name__ == '__main__':
-    Main()
+    main()
