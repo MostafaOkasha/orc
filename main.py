@@ -22,13 +22,14 @@ PORT = 4004
 BUFF = 1024
 ConnectionLimit = 10            # Max number of connections
 Debbuging = 1                   # Debug Messages
+DebugFile = "debug.log"
 
 
 def response(key):
     return'ServerResponse: ' + key
 
 
-class clientId(object):
+class ClientId(object):
 
     def __init__(self, userid, address):
         self.UserID = userid
@@ -78,15 +79,15 @@ def handler(clientsocket, address):
             result = database.authuser(userid, userhash)
 
             if result != True:
-                print("auth failed for " + userid + " - "  + result)
+                print("auth failed for " + userid + " - " + result)
                 userid = ""
-                hash = ""
+                userhash = ""
                 data = "UID" + ":" + result
 
                 clientsocket.send(data.encode())
             else:
                 debug("authed User " + userid)
-                clientDetails = clientId(userid, address)
+                clientDetails = ClientId(userid, address)
 
         # clear the hash var as we don't need to keep it saved
         userhash = ""
@@ -124,12 +125,13 @@ def nonblank_lines(f):
             yield line
 
 def ReadSettings():
+    CurrentSetting = ""
     print("Reading settings")
     try:
         settings = open("settings/settings.inf", "r")
 
         for LineData in nonblank_lines(settings):
-
+            CurrentSetting = LineData
             if LineData[:1] != "[":
                 setting = LineData.split("=")[0]
                 settingArgument = LineData.split("=")[1]
@@ -158,13 +160,14 @@ def ReadSettings():
                         Debbuging = int(settingArgument)
                         continue
 
-
-
-
-
+                if settings == "DebugFile":
+                    global DebugFile
+                    DebugFile = settingArgument
+                    continue
 
     except:
-        print("whoopsie")
+        print("Error in Reading the Setting files")
+        print(CurrentSetting)
 
 
     finally:

@@ -1,5 +1,4 @@
 Things that I'm need to do
 input checking
-Read setting files read at start up - Shane working on
-Data logging to a file
+Data logging to a file - Shane working on this
 client side
