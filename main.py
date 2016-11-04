@@ -14,6 +14,7 @@ from socket import *
 import database     # bring in the database module
 import time
 import threading
+import logging
 
 
 PROGNAME = "ORC - Open Raspberry-Pi Chess"
@@ -23,6 +24,7 @@ BUFF = 1024
 ConnectionLimit = 10            # Max number of connections
 Debbuging = 1                   # Debug Messages
 DebugFile = "debug.log"
+Logger = ""
 
 
 def response(key):
@@ -48,7 +50,7 @@ def handler(clientsocket, address):
     while True:
         data = clientsocket.recv(BUFF)
         data = data.decode('utf-8')
-        debug(data)
+        print(data)
 
         # data validation
         data = data.rstrip()
@@ -86,23 +88,51 @@ def handler(clientsocket, address):
 
                 clientsocket.send(data.encode())
             else:
-                debug("authed User " + userid)
+                print("authed User " + userid)
                 clientDetails = ClientId(userid, address)
 
         # clear the hash var as we don't need to keep it saved
         userhash = ""
         userid = ""
 
+#
+#TODO                Working on the Logging
+#
 
-def debug(message):
+
+
+def SetupLog():
     global Debbuging
-    if Debbuging == 1:
-        print(message)
+    global DebugFile
+    global Logger
+
+    if Debbuging !=0:
+        Logger = logging.getLogger('myapp')
+        hdlr = logging.FileHandler(DebugFile)
+        formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+        hdlr.setFormatter(formatter)
+        Logger.addHandler(hdlr)
+
+        if Debbuging.isnumeric() == True:
+            if Debbuging == 1:
+                Logger.setLevel(logging.CRITICAL)
+            elif Debbuging == 2:
+                Logger.setLevel(logging.ERROR)
+            elif Debbuging == 3:
+                Logger.setLevel(logging.WARNING)
+            elif Debbuging == 4:
+                Logger.setLevel(logging.INFO)
+            elif Debbuging == 5:
+                Logger.setLevel(logging.DEBUG)
 
 
 def main():
-    ReadSettings()
+    global Logger
 
+    ReadSettings()
+    SetupLog()
+    Logger.INFO('Testing')
+    Logger.ERROR('Testing')
 
     ADDR = (HOST, PORT)
     Serversock = socket(AF_INET, SOCK_STREAM)
@@ -111,7 +141,7 @@ def main():
     Serversock.listen(ConnectionLimit)
 
     while True:
-        debug("Waiting for connection ... Listening on port " + str(PORT))
+        print("Waiting for connection ... Listening on port " + str(PORT))
         (clientsock, addr) = Serversock.accept()
         print(' ... Connected from: ' + str(addr))
         t = threading.Thread(target = handler(clientsock,addr))
@@ -121,8 +151,11 @@ def main():
 def nonblank_lines(f):
     for l in f:
         line = l.rstrip()
-        if line:
-            yield line
+
+        if line[:1] != "#":
+            if line:
+                yield line
+
 
 def ReadSettings():
     CurrentSetting = ""
